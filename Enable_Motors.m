@@ -81,9 +81,15 @@ pause(0.2)
 % [hex2dec('0F') hex2dec('0') hex2dec('03')];
 
 for i=1:7
+
 command = sprintf('032%d',i); 
+
 msg(i)=canMessage(hex2dec(command),false,3); 
-msg(i).Data=[hex2dec('0F') hex2dec('0') hex2dec('01')];
+    if i == 1  % motor 1 in velocity mode
+       msg(i).Data=[hex2dec('0F') hex2dec('0') hex2dec('03')];
+    else
+        msg(i).Data=[hex2dec('0F') hex2dec('0') hex2dec('01')];
+    end
 end
 
 transmit(txCh1,msg(1:7))
@@ -91,17 +97,28 @@ transmit(txCh1,msg(1:7))
 %% Define rotational speed of the motor
 
 % Run this only if you want to change the default speed
-for i = 1:7
+for i = 2:7
 command = sprintf('60%d',i); 
-msg11(i)=canMessage(hex2dec(command),false,8); 
-%msg11.Data=[hex2dec('22') hex2dec('81') hex2dec('60') 0 hex2dec('E8') hex2dec('03') 0 0]; %1000
-%msg11.Data=[hex2dec('22') hex2dec('81') hex2dec('60') 0 hex2dec('32') hex2dec('00') 0 0]; %50
-msg11(i).Data=[hex2dec('22') hex2dec('81') hex2dec('60') 0 hex2dec('88') hex2dec('13') 0 0]; %2000
+msg11(i-1)=canMessage(hex2dec(command),false,8); 
+msg11(i-1).Data=[hex2dec('22') hex2dec('81') hex2dec('60') 0 hex2dec('88') hex2dec('13') 0 0]; %5000
 end
-msg11(1).Data=[hex2dec('22') hex2dec('81') hex2dec('60') 0 hex2dec('70') hex2dec('17') 0 0]; %2000
+transmit(txCh1,msg11(1:6))
 
-transmit(txCh1,msg11(1:7))
+% change acceleration and decceleration of 1st motor
+% first motor acceleration
+command = sprintf('60%d',1); 
+msg=canMessage(hex2dec(command),false,8); 
+%msg.Data=[hex2dec('22') hex2dec('83') hex2dec('60') 0 hex2dec('60') hex2dec('EA') 0 0]; %60000
+msg.Data=[hex2dec('22') hex2dec('83') hex2dec('60') 0 hex2dec('A0') hex2dec('86') 1 0]; %100000
 
+transmit(txCh1,msg)
+
+% first motor decceleration
+command = sprintf('60%d',1); 
+msg=canMessage(hex2dec(command),false,8); 
+%msg.Data=[hex2dec('22') hex2dec('84') hex2dec('60') 0 hex2dec('60') hex2dec('EA') 0 0]; %60000
+msg.Data=[hex2dec('22') hex2dec('84') hex2dec('60') 0 hex2dec('A0') hex2dec('86') 1 0]; %100000
+transmit(txCh1,msg)
 
 %% test by moving one individual motor
 
